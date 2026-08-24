@@ -5,12 +5,12 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/check-output.mjs",
     "preview": "astro preview"
   },
   "dependencies": {
-    "@astrojs/rss": "^4.0.12",
+    "@astrojs/rss": "^4.0.19",
     "@fontsource-variable/source-serif-4": "^5.3.0",
-    "astro": "^5.14.1"
+    "astro": "^7.2.4"
   }
 }

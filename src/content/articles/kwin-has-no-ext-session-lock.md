@@ -38,7 +38,7 @@ interface: 'ext_data_control_manager_v1',       version:  1, name: 16
 interface: 'ext_idle_notifier_v1',              version:  2, name: 21
 ```
 
-三个 `ext_*` 都在，会话锁不在。这个组合比空结果有用得多：**KWin 对 `ext-*` 系列不是一概不实现，是挑着实现。**空闲通知它要，会话锁它不要。
+三个 `ext_*` 都在，会话锁不在。这个组合比空结果有用得多：**KWin 对 `ext-*` 系列不是一概不实现，是挑着实现**。空闲通知它要，会话锁它不要。
 
 顺带一个容易记错的点：空闲那个协议叫 `ext-idle-notify-v1`，但它暴露出来的接口名是 `ext_idle_notifier_v1`——多一个 `r`。grep 的时候按协议名去搜会搜不到，我第一次就栽在这儿。
 

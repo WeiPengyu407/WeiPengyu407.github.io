@@ -1,4 +1,7 @@
-import { defineCollection, z } from "astro:content";
+// z 必须从 astro/zod 导入。Astro 6 起 astro:content 不再转出 z，
+// 也不要走 astro:schema（同样已弃用）。
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
 import { glob } from "astro/loaders";
 
 const articles = defineCollection({
