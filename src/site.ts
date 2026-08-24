@@ -61,6 +61,14 @@ export const PROJECTS = [
     href: "https://github.com/WeiPengyu407/music-unlock",
   },
   {
+    name: "kimi-webui-ctrl-s-fix",
+    blurb:
+      "一个用户脚本：Kimi Code Web UI 把「插嘴」绑在 Ctrl+S 上，和浏览器的「保存页面」撞了，按下去只会弹保存对话框。",
+    finding:
+      "在捕获阶段 preventDefault，只掐掉浏览器的默认行为，事件继续往下传，页面自己的处理器照常收到。",
+    href: "https://github.com/WeiPengyu407/kimi-webui-ctrl-s-fix",
+  },
+  {
     name: "wx-remote",
     blurb: "用手机微信远程指挥自己电脑上的 AI 编程助手，常驻守护进程，现在还在跑。",
     finding: "",
