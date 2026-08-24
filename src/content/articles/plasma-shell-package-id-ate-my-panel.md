@@ -3,7 +3,7 @@ title: 我给 KDE 换了个自定义 shell 包，然后桌面面板消失了
 saves: plasmashell 的部件配置文件名是按 shell 包 ID 拼的。换个自定义 ID，桌面会拿到一套空白布局——现象和你改的东西看着毫无关系。
 date: 2026-08-24
 tags: ["KDE Plasma", "plasmashell", "静默失败"]
-featured: true
+featured: false
 ---
 
 要改 Plasma 的锁屏界面，正规做法是提供一个自己的 shell 包，因为 `kscreenlocker` 从 shell 包的 `contents/lockscreen/` 加载 QML。

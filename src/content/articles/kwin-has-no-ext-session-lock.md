@@ -3,7 +3,7 @@ title: 别在 KDE Plasma 上试 swaylock 了，KWin 没实现 ext-session-lock-v
 saves: swaylock、hyprlock、waylock 这一整类锁屏在 Plasma Wayland 上不是配置问题，是协议根本没实现。省你一天的排查。
 date: 2026-08-24
 tags: ["KDE Plasma", "Wayland", "KWin"]
-featured: true
+featured: false
 ---
 
 我想给自己的机器换一个图片密码锁屏。思路很自然：Wayland 上有个标准协议 `ext-session-lock-v1`，专门用来让第三方程序接管锁屏；swaylock 之类的实现一堆，挑一个改改就行。

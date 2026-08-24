@@ -3,7 +3,7 @@ title: obsidian CLI 不给 TTY 就返回空，而且退出码是 0
 saves: 如果你在脚本或 agent 里调 obsidian CLI 读笔记，拿到的是空字符串而不是报错。别去找笔记的问题，问题在没有伪终端。
 date: 2026-08-24
 tags: ["Obsidian", "CLI", "agent"]
-featured: true
+featured: false
 ---
 
 我把 Obsidian 当 AI 的外置大脑用，让 agent 通过官方 CLI 读写笔记。某次让它去读几篇旧笔记，它回来说：那几篇是空的。

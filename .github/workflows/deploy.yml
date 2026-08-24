@@ -1,0 +1,44 @@
+# 推 main 就构建并发布到 GitHub Pages。
+#
+# 前提（在 GitHub 上做一次，代码里配不了）：
+#   仓库 Settings → Pages → Source 选 "GitHub Actions"。
+#   不选的话这个工作流会跑到 deploy 那步失败，报 Pages 未启用。
+#
+# withastro/action 默认执行 package.json 里的 build 脚本，也就是
+# `astro build && node scripts/check-output.mjs`。所以产物自检在 CI 里也会跑，
+# 加粗静默失效会让部署直接失败，而不是带着星号上线。
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # 允许在 Actions 页面手动触发，用来在不改代码的情况下重发一次
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同时推多次时，让后一次取消前一次，避免旧构建覆盖新构建
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: withastro/action@v6
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
