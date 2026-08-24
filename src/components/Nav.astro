@@ -1,0 +1,77 @@
+---
+import { SITE } from "../site";
+
+const path = Astro.url.pathname;
+const isHome = path === "/";
+---
+
+<header class="nav" data-nav data-hidden="false" data-floating="false">
+  <div class="nav__inner">
+    <a class="nav__mark ui" href="/" aria-current={isHome ? "page" : undefined}>
+      {SITE.name}
+    </a>
+    <nav class="nav__links ui" aria-label="主导航">
+      <a href="/articles/" aria-current={path.startsWith("/articles") ? "page" : undefined}>
+        文章
+      </a>
+      <a href="/#about">关于</a>
+      <a href="/rss.xml">订阅</a>
+    </nav>
+  </div>
+</header>
+
+<style>
+  /* 内容即界面：向下读时导航让路，向上找时它回来。 */
+  .nav {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 50;
+    transition:
+      transform 0.36s var(--ease-out),
+      background-color 0.36s var(--ease-out),
+      border-color 0.36s var(--ease-out);
+    border-bottom: 1px solid transparent;
+  }
+
+  .nav[data-hidden="true"] {
+    transform: translateY(-100%);
+  }
+
+  .nav[data-floating="true"] {
+    background: color-mix(in srgb, var(--paper) 82%, transparent);
+    backdrop-filter: saturate(140%) blur(14px);
+    border-bottom-color: var(--rule);
+  }
+
+  .nav__inner {
+    max-width: var(--measure-wide);
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .nav__mark {
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+  }
+
+  .nav__links {
+    display: flex;
+    gap: 1.4rem;
+  }
+
+  .nav__links a {
+    text-decoration: none;
+    color: var(--ink-soft);
+    transition: color 0.16s var(--ease-out);
+  }
+
+  .nav__links a:hover,
+  .nav__links a[aria-current="page"] {
+    color: var(--ink);
+  }
+</style>

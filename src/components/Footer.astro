@@ -1,0 +1,45 @@
+---
+import { SITE } from "../site";
+const year = new Date().getFullYear();
+---
+
+<footer class="foot ui">
+  <div class="foot__inner">
+    <span>© {year} {SITE.name}</span>
+    <span class="foot__links">
+      {SITE.links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </span>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    border-top: 1px solid var(--rule);
+    color: var(--ink-faint);
+  }
+
+  .foot__inner {
+    max-width: var(--measure-wide);
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+  }
+
+  .foot__links {
+    display: flex;
+    gap: 1.2rem;
+  }
+
+  .foot a {
+    text-decoration: none;
+    color: var(--ink-faint);
+    transition: color 0.16s var(--ease-out);
+  }
+
+  .foot a:hover {
+    color: var(--ink);
+  }
+</style>

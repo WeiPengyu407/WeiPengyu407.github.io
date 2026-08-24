@@ -1,0 +1,228 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { HERO, ABOUT, PROJECTS, SITE } from "../site";
+
+const all = await getCollection("articles", ({ data }) => !data.draft);
+const featured = all
+  .filter((a) => a.data.featured)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const fmt = (d: Date) =>
+  d.toLocaleDateString("zh-CN", { year: "numeric", month: "long" });
+---
+
+<Base>
+  {/* 一屏一件事：这屏只回答「你是谁」，一个出口。 */}
+  <section class="screen hero">
+    <div class="screen__inner">
+      <p class="eyebrow" data-reveal>{HERO.eyebrow}</p>
+      <h1 class="hero-title" data-reveal style="transition-delay:.06s">{HERO.title}</h1>
+      <p class="lede" data-reveal style="transition-delay:.12s">{HERO.lede}</p>
+      <div class="hero__act" data-reveal style="transition-delay:.2s">
+        <a class="btn" href="#featured">往下看</a>
+      </div>
+    </div>
+    <span class="hero__hint ui" aria-hidden="true">滚动</span>
+  </section>
+
+  {/* 精选：一屏一篇。不做三列卡片网格，那是仪表盘逻辑。 */}
+  <div id="featured"></div>
+  {
+    featured.map((entry, i) => (
+      <section class={`screen ${i % 2 === 1 ? "screen--tint" : ""}`}>
+        <div class="screen__inner">
+          {i === 0 && (
+            <p class="eyebrow" data-reveal>
+              从这里开始读
+            </p>
+          )}
+          <article class="feat">
+            <p class="feat__meta ui" data-reveal>
+              {fmt(entry.data.date)}
+              {entry.data.tags.length > 0 && <span> · {entry.data.tags.join(" · ")}</span>}
+            </p>
+            <h2 class="feat__title" data-reveal style="transition-delay:.06s">
+              <a href={`/articles/${entry.id}/`} transition:name={`t-${entry.id}`}>
+                {entry.data.title}
+              </a>
+            </h2>
+            <p class="finding" data-reveal style="transition-delay:.12s">
+              <strong>结论</strong>　{entry.data.saves}
+            </p>
+            <p data-reveal style="transition-delay:.18s">
+              <a class="btn btn--ghost" href={`/articles/${entry.id}/`}>读全文</a>
+            </p>
+          </article>
+        </div>
+      </section>
+    ))
+  }
+
+  {/* 项目是文章的可信度证据，所以整屏只讲一件事：我造过什么。 */}
+  <section class="screen">
+    <div class="screen__inner">
+      <p class="eyebrow" data-reveal>项目</p>
+      <h2 class="section-title projects__head" data-reveal style="transition-delay:.06s">
+        下面这些我每天都在用，不是拿来展示的作品集。
+      </h2>
+      <ul class="projects">
+        {
+          PROJECTS.map((p, i) => (
+            <li class="projects__item" data-reveal style={`transition-delay:${i * 0.05}s`}>
+              <h3 class="projects__name">
+                {p.href ? <a href={p.href}>{p.name}</a> : p.name}
+              </h3>
+              <p class="projects__blurb">{p.blurb}</p>
+              {p.finding && <p class="finding">{p.finding}</p>}
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="screen screen--tint" id="about">
+    <div class="screen__inner">
+      <p class="eyebrow" data-reveal>关于</p>
+      <div class="measure">
+        {
+          ABOUT.map((line, i) => (
+            <p class="about__line" data-reveal style={`transition-delay:${i * 0.07}s`}>
+              {line}
+            </p>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {/* 最后一屏只有一个动作。 */}
+  <section class="screen">
+    <div class="screen__inner measure">
+      <p class="eyebrow" data-reveal>订阅</p>
+      <h2 class="section-title" data-reveal style="transition-delay:.06s">
+        有新文章时，你会收到一封邮件。
+      </h2>
+      <p class="lede" data-reveal style="transition-delay:.12s">
+        大概一周一篇。已经写完的那些也可以直接翻。
+      </p>
+      <p class="sub__acts" data-reveal style="transition-delay:.2s">
+        <a class="btn" href="/rss.xml">RSS 订阅</a>
+        <a class="btn btn--ghost" href="/articles/">全部文章</a>
+      </p>
+      {
+        SITE.email && (
+          <p class="ui sub__mail" data-reveal style="transition-delay:.22s">
+            或者写信： <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+          </p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 92svh;
+  }
+
+  .hero__act {
+    margin-top: 2.4rem;
+  }
+
+  .hero__hint {
+    position: absolute;
+    left: 50%;
+    bottom: 2rem;
+    transform: translateX(-50%);
+    color: var(--ink-faint);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    animation: drift 2.6s var(--ease-out) infinite;
+  }
+
+  @keyframes drift {
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: translate(-50%, 0);
+    }
+    50% {
+      opacity: 0.9;
+      transform: translate(-50%, 0.3rem);
+    }
+  }
+
+  .feat__meta {
+    color: var(--ink-faint);
+    margin: 0 0 0.9rem;
+  }
+
+  .feat__title {
+    font-size: clamp(1.7rem, 3.8vw, 2.8rem);
+    max-width: 15em;
+    letter-spacing: -0.02em;
+  }
+
+  .feat__title a {
+    text-decoration: none;
+  }
+
+  .feat__title a:hover {
+    color: var(--vermilion);
+  }
+
+  .feat p:last-child {
+    margin-top: 2rem;
+  }
+
+  .projects__head {
+    max-width: 15em;
+    margin-bottom: 3rem;
+  }
+
+  .projects {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .projects__item + .projects__item {
+    margin-top: 2.6rem;
+    padding-top: 2.6rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .projects__name {
+    font-size: 1.45rem;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .projects__blurb {
+    margin: 0.5rem 0 0;
+    max-width: var(--measure);
+    color: var(--ink-soft);
+  }
+
+  .about__line {
+    margin: 0 0 1.1rem;
+    font-size: 1.2rem;
+  }
+
+  .sub__acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: 2.2rem;
+  }
+
+  .sub__mail {
+    color: var(--ink-faint);
+    margin-top: 1.6rem;
+  }
+</style>

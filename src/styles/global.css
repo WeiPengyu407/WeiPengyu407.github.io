@@ -1,0 +1,371 @@
+/* ---------------------------------------------------------------------------
+   设计系统：纸张感 / 阅读优先
+   交互逻辑参考苹果（一屏一件事、滚动即叙事、动效必须表意、内容即界面），
+   长相是自己的：暖白纸底、衬线正文、朱红只用来标「发现」。
+   --------------------------------------------------------------------------- */
+
+:root {
+  --paper: #fbfaf7;
+  --paper-deep: #f4f1ea;
+  --ink: #1f1d1a;
+  --ink-soft: #605c54;
+  --ink-faint: #8c877d;
+  --rule: #e2ddd2;
+  --vermilion: #a83c2b;
+  --vermilion-wash: rgba(168, 60, 43, 0.07);
+
+  --font-serif: "Source Serif 4 Variable", "Source Serif 4", "Iowan Old Style",
+    "Palatino Linotype", "Noto Serif CJK SC", "Noto Serif SC", "Songti SC",
+    SimSun, serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", "Noto Sans CJK SC",
+    "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", SFMono-Regular, Menlo, Consolas,
+    "Noto Sans Mono CJK SC", monospace;
+
+  /* 锁死的阅读行宽。窗口再宽正文也不跟着拉长。 */
+  --measure: 36rem;
+  --measure-wide: 62rem;
+
+  /* 苹果式减速曲线：像有质量的东西停下来，而不是线性刹停。 */
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #171613;
+    --paper-deep: #1f1e1a;
+    --ink: #e9e4d9;
+    --ink-soft: #a5a096;
+    --ink-faint: #7d786e;
+    --rule: #302e29;
+    --vermilion: #e0705c;
+    --vermilion-wash: rgba(224, 112, 92, 0.1);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* 共享元素过渡时不要被平滑滚动干扰 */
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  line-height: 1.78;
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--vermilion-wash);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* --- 排版 ------------------------------------------------------------------ */
+
+h1,
+h2,
+h3 {
+  font-weight: 600;
+  letter-spacing: -0.018em;
+  line-height: 1.14;
+  margin: 0;
+  text-wrap: balance;
+  /* 中文标题默认会在任意两个汉字之间断行，「折腾底|层」这种断法很难看。
+     keep-all 让它只在标点和空格处断，也就是在语义边界上断；
+     anywhere 是兜底，窄屏放不下时才允许硬断，不然会溢出。 */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.hero-title {
+  font-size: clamp(2.1rem, 5vw, 3.9rem);
+  font-weight: 500;
+  line-height: 1.14;
+  letter-spacing: -0.022em;
+  /* 用 em 而不是 rem：行宽跟着字号一起缩放，任何视口下都是每行约 14 个汉字。
+     正文那个 36rem 是给 18px 文字算的，套在大字上会挤成一条窄柱。 */
+  max-width: 14em;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3.4vw, 2.7rem);
+}
+
+.lede {
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: var(--measure);
+  margin: 1.4rem 0 0;
+  text-wrap: pretty;
+}
+
+/* 所有非正文的界面文字都走无衬线，和内容拉开层级 */
+.ui {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  letter-spacing: 0.015em;
+  line-height: 1.5;
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 1.2rem;
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--rule);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition: text-decoration-color 0.2s var(--ease-out);
+}
+
+a:hover {
+  text-decoration-color: var(--vermilion);
+}
+
+/* --- 布局：一屏一件事 ------------------------------------------------------ */
+
+.screen {
+  /* 88svh 而不是 100svh：露出下一屏的一角，用来邀请滚动。 */
+  min-height: 88svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 6rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.screen:last-of-type {
+  border-bottom: 0;
+}
+
+.screen--tint {
+  background: var(--paper-deep);
+}
+
+.screen__inner {
+  width: 100%;
+  max-width: var(--measure-wide);
+  margin: 0 auto;
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+/* --- 「发现」标记：朱红校勘批注 -------------------------------------------- */
+
+.finding {
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  border-left: 2px solid var(--vermilion);
+  padding: 0.1rem 0 0.1rem 1rem;
+  margin: 1.1rem 0 0;
+  max-width: var(--measure);
+}
+
+.finding strong {
+  color: var(--vermilion);
+  font-weight: 600;
+}
+
+/* --- 按钮：按下就有反应，不等松手 ------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 0.7rem 1.4rem;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.08s var(--ease-out),
+    opacity 0.15s var(--ease-out);
+}
+
+.btn:hover {
+  opacity: 0.88;
+}
+
+.btn:active {
+  transform: scale(0.975);
+}
+
+.btn--ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+.btn--ghost:hover {
+  border-color: var(--ink);
+  opacity: 1;
+}
+
+/* --- 滚动淡入：动效只表达「刚进入视野」，不做装饰 -------------------------- */
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(1.4rem);
+  transition:
+    opacity 0.7s var(--ease-out),
+    transform 0.7s var(--ease-out);
+}
+
+[data-reveal].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --- 正文（文章页） -------------------------------------------------------- */
+
+.prose {
+  max-width: var(--measure);
+}
+
+.prose > * + * {
+  margin-top: 1.5em;
+}
+
+.prose h2 {
+  font-size: 1.6rem;
+  margin-top: 2.8em;
+  letter-spacing: -0.012em;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  margin-top: 2.2em;
+}
+
+.prose a {
+  text-decoration-color: var(--vermilion);
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--vermilion-wash);
+  padding: 0.14em 0.36em;
+  border-radius: 2px;
+  word-break: break-word;
+}
+
+.prose pre {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.65;
+  background: var(--paper-deep);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  /* 代码可以突破行宽，正文不行 */
+  max-width: calc(var(--measure) + 6rem);
+}
+
+.prose pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+.prose blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--rule);
+  color: var(--ink-soft);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.3rem;
+}
+
+.prose li + li {
+  margin-top: 0.5em;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 3px;
+}
+
+.prose hr {
+  border: 0;
+  border-top: 1px solid var(--rule);
+  margin: 3em 0;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.prose th,
+.prose td {
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.prose th {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 600;
+}

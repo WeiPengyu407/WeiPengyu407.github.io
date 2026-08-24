@@ -1,0 +1,87 @@
+---
+import "@fontsource-variable/source-serif-4";
+import "../styles/global.css";
+import { ClientRouter } from "astro:transitions";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = SITE.description } = Astro.props;
+const fullTitle = title ? `${title} — ${SITE.name}` : `${SITE.name} — ${SITE.tagline}`;
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title={SITE.name}
+      href="/rss.xml"
+    />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#fbfaf7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171613" media="(prefers-color-scheme: dark)" />
+    <ClientRouter />
+  </head>
+  <body>
+    <Nav />
+    <main id="main">
+      <slot />
+    </main>
+    <Footer />
+
+    <script>
+      // 两件事，都属于「动效必须表意」：
+      // 1. 元素进入视野才淡入 —— 表达「这块刚到」，不是装饰。
+      // 2. 向下读时导航收起，向上找时导航回来 —— 内容即界面。
+      const init = () => {
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        const targets = document.querySelectorAll("[data-reveal]");
+        if (reduce) {
+          targets.forEach((el) => el.classList.add("is-in"));
+        } else {
+          const io = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                entry.target.classList.add("is-in");
+                io.unobserve(entry.target);
+              });
+            },
+            { rootMargin: "0px 0px -12% 0px", threshold: 0.05 },
+          );
+          targets.forEach((el) => io.observe(el));
+        }
+
+        const nav = document.querySelector<HTMLElement>("[data-nav]");
+        if (!nav) return;
+        let last = window.scrollY;
+        const onScroll = () => {
+          const y = window.scrollY;
+          const goingDown = y > last && y > 120;
+          nav.dataset.hidden = goingDown ? "true" : "false";
+          nav.dataset.floating = y > 24 ? "true" : "false";
+          last = y;
+        };
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+      };
+
+      document.addEventListener("astro:page-load", init);
+    </script>
+  </body>
+</html>
